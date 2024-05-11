@@ -43,13 +43,13 @@ int num_shortcuts = sizeof(shortcuts)/sizeof(shortcuts[0]);
 void dol_alloc(int size)
 {
     int mram_size = (SYS_GetArenaHi() - SYS_GetArenaLo());
-    kprintf("Memory available: %iB\n", mram_size);
+    kprintf("Memoria disponible: %iB\n", mram_size);
 
-    kprintf("DOL size is %iB\n", size);
+    kprintf("Tam. del DOL: %iB\n", size);
 
     if (size <= 0)
     {
-        kprintf("Empty DOL\n");
+        kprintf("DOL vacio\n");
         return;
     }
 
@@ -57,7 +57,7 @@ void dol_alloc(int size)
 
     if (!dol)
     {
-        kprintf("Couldn't allocate memory\n");
+        kprintf("Imposible asignar memoria\n");
     }
 }
 
@@ -68,28 +68,28 @@ void load_parse_cli(char *path)
     path[path_length - 2] = 'l';
     path[path_length - 1] = 'i';
 
-    kprintf("Reading %s\n", path);
+    kprintf("Leyendo %s\n", path);
     FIL file;
     FRESULT result = f_open(&file, path, FA_READ);
     if (result != FR_OK)
     {
         if (result == FR_NO_FILE)
         {
-            kprintf("CLI file not found\n");
+            kprintf("Archivo CLI no encontrado\n");
         }
         else
         {
-            kprintf("Failed to open CLI file: %s\n", get_fresult_message(result));
+            kprintf("Fallo al abrir archivo CLI: %s\n", get_fresult_message(result));
         }
         return;
     }
 
     size_t size = f_size(&file);
-    kprintf("CLI file size is %iB\n", size);
+    kprintf("Tam. del archivo CLI: %iB\n", size);
 
     if (size <= 0)
     {
-        kprintf("Empty CLI file\n");
+        kprintf("Archivo CLI vacio\n");
         return;
     }
 
@@ -97,7 +97,7 @@ void load_parse_cli(char *path)
 
     if (!cli)
     {
-        kprintf("Couldn't allocate memory for CLI file\n");
+        kprintf("Imposible asignar memoria al archivo CLI\n");
         return;
     }
 
@@ -136,13 +136,13 @@ void load_parse_cli(char *path)
             dol_argc++;
             if (dol_argc >= MAX_NUM_ARGV)
             {
-                kprintf("Reached max of %i args.\n", MAX_NUM_ARGV);
+                kprintf("Alcanzado maximo de %i args.\n", MAX_NUM_ARGV);
                 break;
             }
         }
     }
     
-    kprintf("Found %i CLI args\n", dol_argc);
+    kprintf("Encontrado(s) %i arg(s) CLI\n", dol_argc);
 
     #if VERBOSE_LOGGING
     for (int i = 0; i < dol_argc; ++i) {
@@ -155,30 +155,30 @@ int load_fat(const char *slot_name, const DISC_INTERFACE *iface_, char **paths, 
 {
     int res = 0;
 
-    kprintf("Trying %s\n", slot_name);
+    kprintf("Probando %s\n", slot_name);
 
     FATFS fs;
     iface = iface_;
     FRESULT mount_result = f_mount(&fs, "", 1);
     if (mount_result != FR_OK)
     {
-        kprintf("Couldn't mount %s: %s\n", slot_name, get_fresult_message(mount_result));
+        kprintf("Imposible montar %s: %s\n", slot_name, get_fresult_message(mount_result));
         goto end;
     }
 
     char name[256];
     f_getlabel(slot_name, name, NULL);
-    kprintf("Mounted %s as %s\n", name, slot_name);
+    kprintf("Montado %s como %s\n", name, slot_name);
 
     for (int i = 0; i < num_paths; ++i)
     {
         char *path = paths[i];
-        kprintf("Reading %s\n", path);
+        kprintf("Leyendo %s\n", path);
         FIL file;
         FRESULT open_result = f_open(&file, path, FA_READ);
         if (open_result != FR_OK)
         {
-            kprintf("Failed to open file: %s\n", get_fresult_message(open_result));
+            kprintf("Fallo al abrir arch: %s\n", get_fresult_message(open_result));
             continue;
         }
 
@@ -199,7 +199,7 @@ int load_fat(const char *slot_name, const DISC_INTERFACE *iface_, char **paths, 
         break;
     }
 
-    kprintf("Unmounting %s\n", slot_name);
+    kprintf("Desmontando %s\n", slot_name);
     iface->shutdown();
     iface = NULL;
 
@@ -226,7 +226,7 @@ unsigned int convert_int(unsigned int in)
 
 int load_usb(char slot)
 {
-    kprintf("Trying USB Gecko in slot %c\n", slot);
+    kprintf("Probando USB Gecko en ranura %c\n", slot);
 
     int channel, res = 1;
 
@@ -244,7 +244,7 @@ int load_usb(char slot)
 
     if (!usb_isgeckoalive(channel))
     {
-        kprintf("Not present\n");
+        kprintf("No presente\n");
         res = 0;
         goto end;
     }
@@ -253,11 +253,11 @@ int load_usb(char slot)
 
     char data;
 
-    kprintf("Sending ready\n");
+    kprintf("Enviando listo\n");
     data = GC_READY;
     usb_sendbuffer_safe(channel, &data, 1);
 
-    kprintf("Waiting for ack (5s timeout)...\n");
+    kprintf("Esperando ack (5seg de espera)...\n");
     u64 current_time, start_time = gettime();
 
     while ((data != PC_READY) && (data != PC_OK))
@@ -265,7 +265,7 @@ int load_usb(char slot)
         current_time = gettime();
         if (diff_sec(start_time, current_time) >= 5) 
         {
-            kprintf("PC did not respond in time\n");
+            kprintf("El PC no respondio a tiempo\n");
             res = 0;
             goto end;
         }
@@ -275,14 +275,14 @@ int load_usb(char slot)
 
     if(data == PC_READY)
     {
-        kprintf("Respond with OK\n");
+        kprintf("Respondio con OK\n");
         // Sometimes the PC can fail to receive the byte, this helps
         usleep(100000);
         data = GC_OK;
         usb_sendbuffer_safe(channel, &data, 1);
     }
 
-    kprintf("Getting DOL size\n");
+    kprintf("Obteniendo tam. de DOL\n");
     int size;
     usb_recvbuffer_safe(channel, &size, 4);
     size = convert_int(size);
@@ -296,7 +296,7 @@ int load_usb(char slot)
         goto end;
     }
 
-    kprintf("Receiving file...\n");
+    kprintf("Recibiendo archivo...\n");
     while (size > 0xF7D8)
     {
         usb_recvbuffer_safe(channel, (void *) pointer, 0xF7D8);
@@ -316,11 +316,11 @@ void delay_exit() {
     // Wait while the d-pad down direction or reset button is held.
     if (all_buttons_held & PAD_BUTTON_DOWN)
     {
-        kprintf("(release d-pad down to continue)\n");
+        kprintf("(Suelta el d-pad abajo para continuar)\n");
     }
     if (SYS_ResetButtonDown())
     {
-        kprintf("(release reset button to continue)\n");
+        kprintf("(suelta el boton reset para continuar)\n");
     }
 
     while (all_buttons_held & PAD_BUTTON_DOWN || SYS_ResetButtonDown())
@@ -349,7 +349,7 @@ int main()
     VIDEO_WaitVSync();
     CON_Init(__xfb, 0, 0, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 
-    kprintf("\n\niplboot (with M.2 Loader support)\n");
+    kprintf("\n\niplboot (con soporte para M.2 Loader)- Traducido por Lopez Tutoriales\n");
 
     // Disable Qoob
     u32 val = 6 << 24;
@@ -375,7 +375,7 @@ int main()
     if (all_buttons_held & PAD_BUTTON_LEFT || SYS_ResetButtonDown())
     {
         // Since we've disabled the Qoob, we wil reboot to the Nintendo IPL
-        kprintf("Skipped. Rebooting into original IPL...\n");
+        kprintf("Saltado. Reiniciando en el IPL original...\n");
         delay_exit();
         return 0;
     }
@@ -398,10 +398,10 @@ int main()
     if (load_usb('A')) goto load;
 
     if (M2Loader_IsInserted()) {
-        kprintf("M.2 Loader hardware detected\n");
+        kprintf("M.2 Loader detectado\n");
         if (load_fat("m2ldr", &__io_m2ldr, paths, num_paths)) goto load;
     } else {
-        kprintf("No M.2 Loader hardware detected\n");
+        kprintf("M.2 Loader no detectado\n");
     }
 
     if (load_fat("sd2", &__io_gcsd2, paths, num_paths)) goto load;
@@ -415,7 +415,7 @@ load:
     {
         // If we reach here, all attempts to load a DOL failed
         // Since we've disabled the Qoob, we wil reboot to the Nintendo IPL
-        kprintf("No DOL loaded. Rebooting into original IPL...\n");
+        kprintf("No hay DOL cargado. Reiniciando en el IPL original...\n");
         delay_exit();
         return 0;
     }
@@ -437,12 +437,12 @@ load:
             dolargs.length += arg_length;
         }
 
-        kprintf("CLI argv size is %iB\n", dolargs.length);
+        kprintf("Tam. CLI argv: %iB\n", dolargs.length);
         dolargs.commandLine = (char *) malloc(dolargs.length);
 
         if (!dolargs.commandLine)
         {
-            kprintf("Couldn't allocate memory for CLI argv\n");
+            kprintf("Imposible asignar memoria para CLI argv\n");
             dolargs.length = 0;
         }
         else

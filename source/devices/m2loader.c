@@ -178,13 +178,13 @@ u32 _M2Loader_DriveIdentify()
         usleep(100000); // sleep for 0.1 seconds
         retries--;
 #ifdef _M2LDR_DEBUG
-        printf("(%08X) Waiting for BSY to clear..\r\n", tmp);
+        printf("(%08X) Esperando que se borre BSY..\r\n", tmp);
 #endif
     } while ((tmp & ATA_SR_BSY) && retries);
     if (!retries)
     {
 #ifdef _M2LDR_DEBUG
-        printf("Exceeded retries..\r\n");
+        printf("Reintentos superados..\r\n");
 #endif
 
         return -1;
@@ -201,13 +201,13 @@ u32 _M2Loader_DriveIdentify()
         usleep(100000); // sleep for 0.1 seconds
         retries--;
 #ifdef _M2LDR_DEBUG
-        printf("(%08X) Waiting for DRQ to toggle..\r\n", tmp);
+        printf("(%08X) Esperando a que cambie DRQ..\r\n", tmp);
 #endif
     } while ((!(tmp & ATA_SR_DRQ)) && retries);
     if (!retries)
     {
 #ifdef _M2LDR_DEBUG
-        printf("(%08X) Drive did not respond in time, failing M.2 Loader init..\r\n", tmp);
+        printf("(%08X) Unidad no respondio a tiempo, fallo de inicio de M.2 Loader..\r\n", tmp);
 #endif
 
         return -1;
@@ -266,29 +266,29 @@ u32 _M2Loader_DriveIdentify()
     }
 
 #ifdef _M2LDR_DEBUG
-    printf("%d GB SDD Connected\r\n", M2LoaderDriveInfo.sizeInGigaBytes);
-    printf("LBA 48-Bit Mode %s\r\n", M2LoaderDriveInfo.lba48Support ? "Supported" : "Not Supported");
+    printf("%d GB SDD Conectado\r\n", M2LoaderDriveInfo.sizeInGigaBytes);
+    printf("Modo LBA 48-Bit %s\r\n", M2LoaderDriveInfo.lba48Support ? "Soportado" : "No Soportado");
     if (!M2LoaderDriveInfo.lba48Support)
     {
-        printf("Cylinders: %i\r\n", M2LoaderDriveInfo.cylinders);
-        printf("Heads Per Cylinder: %i\r\n", M2LoaderDriveInfo.heads);
-        printf("Sectors Per Track: %i\r\n", M2LoaderDriveInfo.sectors);
+        printf("Cilindros: %i\r\n", M2LoaderDriveInfo.cylinders);
+        printf("Cabezas por cilindro: %i\r\n", M2LoaderDriveInfo.heads);
+        printf("Sectores por Pista: %i\r\n", M2LoaderDriveInfo.sectors);
     }
-    printf("Model: %s\r\n", M2LoaderDriveInfo.model);
-    printf("Serial: %s\r\n", M2LoaderDriveInfo.serial);
+    printf("Modelo: %s\r\n", M2LoaderDriveInfo.model);
+    printf("Serie: %s\r\n", M2LoaderDriveInfo.serial);
     _M2Loader_PrintHddSector((u32 *)&buffer);
 #endif
 
 #ifdef _M2LDR_DEBUG
     int unlockStatus = M2Loader_Unlock(1, "password\0", ATA_CMD_UNLOCK);
-    printf("Unlock Status was: %i\r\n", unlockStatus);
+    printf("Estado de desbloqueo era: %i\r\n", unlockStatus);
 #else
     M2Loader_Unlock(1, "password\0", ATA_CMD_UNLOCK);
 #endif
 
 #ifdef _M2LDR_DEBUG
     unlockStatus = M2Loader_Unlock(1, "password\0", ATA_CMD_SECURITY_DISABLE);
-    printf("Disable Status was: %i\r\n", unlockStatus);
+    printf("Estado de desactivacion era: %i\r\n", unlockStatus);
 #else
     M2Loader_Unlock(1, "password\0", ATA_CMD_SECURITY_DISABLE);
 #endif
@@ -313,13 +313,13 @@ int M2Loader_Unlock(int useMaster, char *password, int command)
         usleep(100000); // sleep for 0.1 seconds
         retries--;
 #ifdef _M2LDR_DEBUG
-        printf("UNLOCK (%08X) Waiting for BSY to clear..\r\n", tmp);
+        printf("DESBLOQUEAR (%08X) Esperando a que se borre BSY..\r\n", tmp);
 #endif
     } while ((tmp & ATA_SR_BSY) && retries);
     if (!retries)
     {
 #ifdef _M2LDR_DEBUG
-        printf("UNLOCK Exceeded retries..\r\n");
+        printf("DESBLOQUEAR - Reintentos superados..\r\n");
 #endif
 
         return -1;
@@ -336,13 +336,13 @@ int M2Loader_Unlock(int useMaster, char *password, int command)
         usleep(100000); // sleep for 0.1 seconds
         retries--;
 #ifdef _M2LDR_DEBUG
-        printf("UNLOCK (%08X) Waiting for DRQ to toggle..\r\n", tmp);
+        printf("DESBLOQUEAR (%08X) Esperando a que cambie DRQ..\r\n", tmp);
 #endif
     } while ((!(tmp & ATA_SR_DRQ)) && retries);
     if (!retries)
     {
 #ifdef _M2LDR_DEBUG
-        printf("UNLOCK (%08X) Drive did not respond in time, failing M.2 Loader init..\r\n", tmp);
+        printf("DESBLOQUEAR (%08X) Unidad no respondio a tiempo, fallo de inicio de M.2 Loader..\r\n", tmp);
 #endif
 
         return -1;
@@ -542,13 +542,13 @@ int _M2Loader_ReadSectors(u64 sector, unsigned int numSectors, unsigned char *de
     while (numSectors)
     {
 #ifdef _M2LDR_DEBUG
-        printf("Reading, sec %08X, numSectors %i, dest %08X ..\r\n", (u32)(sector & 0xFFFFFFFF), numSectors, (u32)dest);
+        printf("Leyendo, sec %08X, numSectors %i, dest %08X ..\r\n", (u32)(sector & 0xFFFFFFFF), numSectors, (u32)dest);
 #endif
 
         if ((ret = _M2Loader_ReadSector(sector, (u32 *)dest)))
         {
 #ifdef _M2LDR_DEBUG
-            printf("(%08X) Failed to read!..\r\n", ret);
+            printf("(%08X) Fallo al leer!..\r\n", ret);
 #endif
 
             return -1;
@@ -576,7 +576,7 @@ int _M2Loader_WriteSectors(u64 sector, unsigned int numSectors, unsigned char *s
         if ((ret = _M2Loader_WriteSector(sector, (u32 *)src)))
         {
 #ifdef _M2LDR_DEBUG
-            printf("(%08X) Failed to write!..\r\n", ret);
+            printf("(%08X) Fallo al escribir!..\r\n", ret);
 #endif
 
             return -1;
